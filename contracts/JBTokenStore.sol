@@ -53,7 +53,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
 
   /**
     @notice
-    Each project's ERC20 Token tokens.
+    Each project's ERC20 tokens.
 
     _projectId The ID of the project to which the token belongs.
   */
@@ -61,7 +61,7 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
 
   /**
     @notice
-    Each holder's balance of unclaimed Tokens for each project.
+    Each holder's balance of unclaimed tokens for each project.
 
     _holder The holder of balance.
     _projectId The ID of the project to which the token belongs.
@@ -275,8 +275,8 @@ contract JBTokenStore is JBControllerUtility, JBOperatable, IJBTokenStore {
     Only a project's current controller can burn its tokens.
 
     @param _holder The address that owns the tokens being burned.
-    @param _projectId The ID of the project to which the burned tokens belong
-    @param _amount The amount of tokens to burned.
+    @param _projectId The ID of the project to which the burned tokens belong.
+    @param _amount The amount of tokens to burn.
     @param _preferClaimedTokens A flag indicating if there's a preference to burn tokens that have been converted to ERC-20s.
   */
   function burnFrom(
