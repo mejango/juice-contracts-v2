@@ -67,7 +67,7 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
     @param _group The identifying group of the splits.
 
     @return An array of all splits for the project.
-    */
+  */
   function splitsOf(
     uint256 _projectId,
     uint256 _domain,
@@ -99,20 +99,20 @@ contract JBSplitsStore is IJBSplitsStore, JBOperatable {
   //*********************************************************************//
 
   /** 
-    @notice 
-    Sets a project's splits.
+  @notice 
+  Sets a project's splits.
 
-    @dev
-    Only the owner or operator of a project, or the current controller contract of the project, can set its splits.
+  @dev
+  Only the owner or operator of a project, or the current controller contract of the project, can set its splits.
 
-    @dev
-    The new splits must include any currently set splits that are locked.
+  @dev
+  The new splits must include any currently set splits that are locked.
 
-    @param _projectId The ID of the project for which splits are being added.
-    @param _domain An identifier within which the splits should be considered active.
-    @param _group An identifier between of splits being set. All splits within this _group must add up to within 100%.
-    @param _splits The splits to set.
-  */
+  @param _projectId The ID of the project for which splits are being added.
+  @param _domain An identifier within which the splits should be considered active.
+  @param _group An identifier between of splits being set. All splits within this _group must add up to within 100%.
+  @param _splits The splits to set.
+*/
   function set(
     uint256 _projectId,
     uint256 _domain,
