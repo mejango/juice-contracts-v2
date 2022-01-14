@@ -17,6 +17,7 @@ error CONTROLLER_NOT_IN_ALLOWLIST();
 error INVALID_PROJECT_ID();
 error PRIMARY_TERMINAL_ALREADY_SET();
 error SET_CONTROLLER_ZERO_ADDRESS();
+error SET_CONTROLLER_ALREADY_SET();
 error SET_PRIMARY_TERMINAL_ZERO_ADDRESS();
 
 /**
@@ -47,7 +48,12 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
 
   /**
     @notice
-    Addresses that can set a project's controller. These addresses/contracts have been vetted and verified by Juicebox owners.
+    A flag indicating the addresses that can set a project's controller. 
+    
+    @dev
+    These addresses/contracts have been vetted and verified by JuiceboxDAO. 
+
+    _controller The address of the controller.
    */
   mapping(address => bool) private _setControllerAllowlist;
 
@@ -186,15 +192,15 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
   }
 
   /**
-    @notice
-    Update the controller that manages how terminals interact with the ecosystem.
-    @dev 
-    A controller can be set if:
-    - the message sender is the project owner or an operator having the correct authorization.
-    - or, an allowedlisted address is setting an allowlisted controller.
-    @param _projectId The ID of the project to set a new controller for.
-    @param _controller The new controller to set.
-  */
+  @notice
+  Update the controller that manages how terminals interact with the ecosystem.
+  @dev 
+  A controller can be set if:
+  - the message sender is the project owner or an operator having the correct authorization.
+  - or, an allowedlisted address is setting an allowlisted controller.
+  @param _projectId The ID of the project to set a new controller for.
+  @param _controller The new controller to set.
+*/
   function setControllerOf(uint256 _projectId, IJBController _controller)
     external
     override
@@ -211,7 +217,9 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     }
 
     // If the controller is already set, nothing to do.
-    if (controllerOf[_projectId] == _controller) return;
+    if (controllerOf[_projectId] == _controller) {
+      revert SET_CONTROLLER_ALREADY_SET();
+    }
 
     // The project must exist.
     if (projects.count() < _projectId) {
@@ -245,7 +253,12 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     )
   {
     for (uint256 _i = 0; _i < _terminals.length; _i++) {
-      _addTerminalIfNeeded(_projectId, _terminals[_i], msg.sender);
+      // Can't be the zero address.
+      if (_terminals[_i] == IJBTerminal(address(0))) {
+        revert ADD_TERMINAL_ZERO_ADDRESS();
+      }
+
+      _addTerminalIfNeeded(_projectId, _terminals[_i]);
     }
   }
 
@@ -312,7 +325,7 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     }
 
     // Add the terminal to thge project if it hasn't been already.
-    _addTerminalIfNeeded(_projectId, _terminal, msg.sender);
+    _addTerminalIfNeeded(_projectId, _terminal);
 
     // Store the terminal as the primary for the particular token.
     _primaryTerminalOf[_projectId][_token] = _terminal;
@@ -322,13 +335,16 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
 
   /** 
     @notice
+    Add a controller to the list of trusted controllers.
+
+    @dev
     The owner (Juicebox multisig) can add addresses which are allowed to change
     a project's controller. Those addresses are known and vetted controllers as well as
     contracts designed to launch new projects. This is not a requirement for all controllers.
     However, unknown controllers may require additional transactions to perform certain operations.
 
     @dev
-    If you would like an address/contract allowlisted, please reach out to the Juicebox dev team.
+    If you would like an address/contract allowlisted, please reach out to JuiceboxDAO.
 
     @param _address the allowed address to be added.
   */
@@ -346,7 +362,10 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
 
   /** 
     @notice
-    See `addKnownController(...)` for context. Removes an address from the allowlist.
+    Remove a controller to the list of trusted controllers.
+
+    @dev
+    See `addToSetControllerAllowlist(...)` for context.
 
     @param _address The address to be removed.
   */
@@ -370,28 +389,16 @@ contract JBDirectory is IJBDirectory, JBOperatable, Ownable {
     @notice 
     Add a terminal to a project's list of terminals if it hasn't been already.
 
-    @dev
-    If the terminal is equal to address zero, the transaction will be reverted.
-
     @param _projectId The ID of the project having a terminal added.
     @param _terminal The terminal to add.
-    @param _caller The original caller that added the terminal.
   */
-  function _addTerminalIfNeeded(
-    uint256 _projectId,
-    IJBTerminal _terminal,
-    address _caller
-  ) private {
-    if (_terminal == IJBTerminal(address(0))) {
-      revert ADD_TERMINAL_ZERO_ADDRESS();
-    }
-
+  function _addTerminalIfNeeded(uint256 _projectId, IJBTerminal _terminal) private {
     // Check that the terminal has not already been added.
     if (isTerminalOf(_projectId, _terminal)) return;
 
-    // Set the new terminal.
+    // Add the new terminal.
     _terminalsOf[_projectId].push(_terminal);
 
-    emit AddTerminal(_projectId, _terminal, _caller);
+    emit AddTerminal(_projectId, _terminal, msg.sender);
   }
 }

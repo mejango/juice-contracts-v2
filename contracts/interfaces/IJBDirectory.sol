@@ -19,9 +19,9 @@ interface IJBDirectory {
     address caller
   );
 
-  event AddToSetControllerAllowlist(address indexed _address, address caller);
+  event AddToSetControllerAllowlist(address indexed controller, address caller);
 
-  event RemoveFromSetControllerAllowlist(address indexed _address, address caller);
+  event RemoveFromSetControllerAllowlist(address indexed controller, address caller);
 
   function projects() external view returns (IJBProjects);
 
