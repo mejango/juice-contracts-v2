@@ -39,7 +39,7 @@ error CANT_MIGRATE_TO_CURRENT_CONTROLLER();
 error CHANGE_TOKEN_NOT_ALLOWED();
 error INVALID_BALLOT_REDEMPTION_RATE();
 error INVALID_RESERVED_RATE();
-error INVALID_RESERVED_RATE_AND_BENEFICIARY_ZERO_ADDRESS();
+error RESERVED_RATE_NOT_MAX_WHILE_BENEFICIARY_ZERO_ADDRESS();
 error INVALID_REDEMPTION_RATE();
 error MIGRATION_NOT_ALLOWED();
 error MINT_PAUSED_AND_NOT_TERMINAL_DELEGATE();
@@ -263,36 +263,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
     @param _handle The project's unique handle. This can be updated any time by the owner of the project.
     @param _metadataCid A link to associate with the project. This can be updated any time by the owner of the project.
     @param _data A JBFundingCycleData data structure that defines the project's first funding cycle. These properties will remain fixed for the duration of the funding cycle.
-      @dev _data.target The amount that the project wants to payout during a funding cycle. Sent as a wad (18 decimals).
-      @dev _data.currency The currency of the `target`. Send 0 for ETH or 1 for USD.
-      @dev _data.duration The duration of the funding cycle for which the `target` amount is needed. Measured in days. Send 0 for cycles that are reconfigurable at any time.
-      @dev _data.weight The weight of the funding cycle.
-        This number is interpreted as a wad, meaning it has 18 decimal places.
-        The protocol uses the weight to determine how many tokens to mint upon receiving a payment during a funding cycle.
-        A value of 0 means that the weight should be inherited and potentially discounted from the currently active cycle if possible. Otherwise a weight of 0 will be used.
-        A value of 1 means that no tokens should be minted regardless of how many ETH was paid. The protocol will set the stored weight value to 0.
-        A value of 1 X 10^18 means that one token should be minted per ETH received.
-      @dev _data.discountRate A number from 0-1000000000 indicating how valuable a contribution to this funding cycle is compared to previous funding cycles.
-        If it's 0, each funding cycle will have equal weight.
-        If the number is 900000000, a contribution to the next funding cycle will only give you 10% of tickets given to a contribution of the same amoutn during the current funding cycle.
-      @dev _data.ballot The ballot contract that will be used to approve subsequent reconfigurations. Must adhere to the IFundingCycleBallot interface.
     @param _metadata A JBFundingCycleMetadata data structure specifying the controller specific params that a funding cycle can have. These properties will remain fixed for the duration of the funding cycle.
-      @dev _metadata.reservedRate A number from 0-10000 (0-100%) indicating the percentage of each contribution's newly minted tokens that will be reserved for the token splits.
-      @dev _metadata.redemptionRate The rate from 0-10000 (0-100%) that tunes the bonding curve according to which a project's tokens can be redeemed for overflow.
-        The bonding curve formula is https://www.desmos.com/calculator/sp9ru6zbpk
-        where x is _count, o is _currentOverflow, s is _totalSupply, and r is _redemptionRate.
-      @dev _metadata.ballotRedemptionRate The redemption rate to apply when there is an active ballot.
-      @dev _metadata.pausePay Whether or not the pay functionality should be paused during this cycle.
-      @dev _metadata.pauseWithdrawals Whether or not the withdraw functionality should be paused during this cycle.
-      @dev _metadata.pauseRedeem Whether or not the redeem functionality should be paused during this cycle.
-      @dev _metadata.pauseMint Whether or not the mint functionality should be paused during this cycle.
-      @dev _metadata.pauseBurn Whether or not the burn functionality should be paused during this cycle.
-      @dev _metadata.allowTerminalMigration Whether or not the terminal migration functionality should be paused during this cycle.
-      @dev _metadata.allowControllerMigration Whether or not the controller migration functionality should be paused during this cycle.
-      @dev _metadata.holdFees Whether or not fees should be held to be processed at a later time during this cycle.
-      @dev _metadata.useDataSourceForPay Whether or not the data source should be used when processing a payment.
-      @dev _metadata.useDataSourceForRedeem Whether or not the data source should be used when processing a redemption.
-      @dev _metadata.dataSource A contract that exposes data that can be used within pay and redeem transactions. Must adhere to IJBFundingCycleDataSource.
     @param _groupedSplits An array of splits to set for any number of group.
     @param _fundAccessConstraints An array containing amounts, in wei (18 decimals), that a project can use from its own overflow on-demand for each payment terminal.
     @param _terminals Payment terminals to add for the project.
@@ -344,36 +315,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
 
     @param _projectId The ID of the project whose funding cycles are being reconfigured.
     @param _data A JBFundingCycleData data structure that defines the project's funding cycle that will be queued. These properties will remain fixed for the duration of the funding cycle.
-      @dev _data.target The amount that the project wants to payout during a funding cycle. Sent as a wad (18 decimals).
-      @dev _data.currency The currency of the `target`. Send 0 for ETH or 1 for USD.
-      @dev _data.duration The duration of the funding cycle for which the `target` amount is needed. Measured in days. Send 0 for cycles that are reconfigurable at any time.
-      @dev _data.weight The weight of the funding cycle.
-        This number is interpreted as a wad, meaning it has 18 decimal places.
-        The protocol uses the weight to determine how many tokens to mint upon receiving a payment during a funding cycle.
-        A value of 0 means that the weight should be inherited and potentially discounted from the currently active cycle if possible. Otherwise a weight of 0 will be used.
-        A value of 1 means that no tokens should be minted regardless of how many ETH was paid. The protocol will set the stored weight value to 0.
-        A value of 1 X 10^18 means that one token should be minted per ETH received.
-      @dev _data.discountRate A number from 0-1000000000 indicating how valuable a contribution to this funding cycle is compared to previous funding cycles.
-        If it's 0, each funding cycle will have equal weight.
-        If the number is 900000000, a contribution to the next funding cycle will only give you 10% of tickets given to a contribution of the same amoutn during the current funding cycle.
-      @dev _data.ballot The ballot contract that will be used to approve subsequent reconfigurations. Must adhere to the IFundingCycleBallot interface.
     @param _metadata A JBFundingCycleMetadata data structure specifying the controller specific params that a funding cycle can have. These properties will remain fixed for the duration of the funding cycle.
-      @dev _metadata.reservedRate A number from 0-10000 (0-100%) indicating the percentage of each contribution's newly minted tokens that will be reserved for the token splits.
-      @dev _metadata.redemptionRate The rate from 0-10000 (0-100%) that tunes the bonding curve according to which a project's tokens can be redeemed for overflow.
-        The bonding curve formula is https://www.desmos.com/calculator/sp9ru6zbpk
-        where x is _count, o is _currentOverflow, s is _totalSupply, and r is _redemptionRate.
-      @dev _metadata.ballotRedemptionRate The redemption rate to apply when there is an active ballot.
-      @dev _metadata.pausePay Whether or not the pay functionality should be paused during this cycle.
-      @dev _metadata.pauseWithdrawals Whether or not the withdraw functionality should be paused during this cycle.
-      @dev _metadata.pauseRedeem Whether or not the redeem functionality should be paused during this cycle.
-      @dev _metadata.pauseMint Whether or not the mint functionality should be paused during this cycle.
-      @dev _metadata.pauseBurn Whether or not the burn functionality should be paused during this cycle.
-      @dev _metadata.allowTerminalMigration Whether or not the terminal migration functionality should be paused during this cycle.
-      @dev _metadata.allowControllerMigration Whether or not the controller migration functionality should be paused during this cycle.
-      @dev _metadata.holdFees Whether or not fees should be held to be processed at a later time during this cycle.
-      @dev _metadata.useDataSourceForPay Whether or not the data source should be used when processing a payment.
-      @dev _metadata.useDataSourceForRedeem Whether or not the data source should be used when processing a redemption.
-      @dev _metadata.dataSource A contract that exposes data that can be used within pay and redeem transactions. Must adhere to IJBFundingCycleDataSource.
     @param _groupedSplits An array of splits to set for any number of group.
     @param _fundAccessConstraints An array containing amounts, in wei (18 decimals), that a project can use from its own overflow on-demand for each payment terminal.
 
@@ -505,7 +447,7 @@ contract JBController is IJBController, JBTerminalUtility, JBOperatable, Reentra
 
     // Can't send to the zero address.
     if (_reservedRate != JBConstants.MAX_RESERVED_RATE && _beneficiary == address(0)) {
-      revert INVALID_RESERVED_RATE_AND_BENEFICIARY_ZERO_ADDRESS();
+      revert RESERVED_RATE_NOT_MAX_WHILE_BENEFICIARY_ZERO_ADDRESS();
     }
 
     // There should be tokens to mint.
