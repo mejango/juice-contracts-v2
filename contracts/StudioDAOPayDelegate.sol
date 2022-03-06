@@ -36,13 +36,17 @@ contract NFTRewards is ERC721URIStorage, IJBPayDelegate, Ownable, AccessControl 
         uint256 newItemId = _tokenIds.current();
         _mint(_param.payer, newItemId);
         if (_param.amount < BRONZE) {
-            _setTokenURI(newItemId, "https://gateway.pinata.cloud/ipfs/QmV4eDCDfYoaBcCoTU6ce9DSq2SFv4dEm7c8wkBEdWYVVD");
+            //Thank You
+            _setTokenURI(newItemId, "ipfs://QmQRNXdmf3pMGFyfmD3z23Fa4ik3PoU2N9EjdY5ZvLBXBC");
         } else if (_param.amount >= BRONZE && _param.amount < SILVER) {
-            _setTokenURI(newItemId, "https://gateway.pinata.cloud/ipfs/QmY9T2yY65aCrASiwRuH98NxyQTbceSWuM5A1Mmg3S9CHA");
+            //Bronze - Low
+            _setTokenURI(newItemId, "ipfs://QmXuCzpSiCv2bJ75R9CpkxVkf5nezHq6XQ6yyKxBBM3gcJ");
         } else if (_param.amount >= SILVER && _param.amount < GOLD) {
-            _setTokenURI(newItemId, "https://gateway.pinata.cloud/ipfs/QmXupnWuoCF18ZX4CJcHZTVc5GjkYWorXqjypnEGSpaM3d");
+            //Silver - Mid
+            _setTokenURI(newItemId, "ipfs://QmcJgVHQooMZAZ6hcVKFEijXJ9zZVv3ynA68r6weVZsHWf");
         } else if (_param.amount >= GOLD) {
-            _setTokenURI(newItemId, "https://gateway.pinata.cloud/ipfs/QmdkHedPr3et5kKQELy56M1fQvLBvPF9KkuTK9dTtpFRjg");
+            //Gold - High
+            _setTokenURI(newItemId, "ipfs://QmbozCsqw6zDqxopYNvFcCww2egtTZPHWJ4WbCoBTwaeks");
         }
         
     }
